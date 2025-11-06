@@ -17,10 +17,33 @@ Ví dụ: bopen notepad
 
 ### 3. In ra danh sách tiến trình:
 Sử dụng lệnh "list"
+```bash
+list
+```
 
 ### 4. Hủy tiến trình:
-Sử dụng lệnh "remove". Sau đó chọn tiến trình cần hủy theo số thứ tự của tiến trình đó.
+Sử dụng lệnh "remove". Shell sẽ hiện danh sách tiến trình đang có và bạn sẽ chọn tiến trình bạn muốn theo số thứ tự của tiến trình đó.
+```bash
+remove
+```
 
 ### 5. Tạm dừng và tiếp tục tiến trình:
-Sử dụng lệnh "stop" và "resume". Sau đó chọn tiền trình mình muốn.
+Sử dụng lệnh "stop" và "resume". Shell sẽ hiện danh sách tiến trình đang có và bạn sẽ chọn tiến trình bạn muốn theo số thứ tự của tiến trình đó.
+```bash
+stop
+```
+```bash
+resume
+```
 
+### 6. In ra một số lệnh hiện có:
+Sử dụng lệnh "help". Shell sẽ in ra danh sách các lệnh của MyShell.
+```bash
+help
+```
+
+### 7. In ra thời gian thực:
+Sử dụng lệnh "time". Shell sẽ in ra thời gian thực.
+```bash
+time
+```

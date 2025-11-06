@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h> 
+#include <time.h>
 
 typedef struct List {
 	PROCESS_INFORMATION pi;
@@ -168,6 +169,32 @@ PROCESS_INFORMATION createBackProcess(char* cmd) {
     return pi;
 }
 
+void help() {
+   FILE *file = fopen("help.txt", "r"); 
+   if (file == NULL) {
+       printf("Loi khong thay file help\n");
+   }
+   char buffer[100]; 
+   while (fgets(buffer, sizeof(buffer), file)) {
+       printf("%s", buffer); 
+   }
+   fclose(file); 
+}
+
+void cur_time() {
+	time_t current_time;
+    time(&current_time);
+    struct tm *local_time = localtime(&current_time);
+    printf("Ngay/Thang/Nam: %02d/%02d/%04d\n", 
+           local_time->tm_mday, 
+           local_time->tm_mon + 1, 
+           local_time->tm_year + 1900);
+    printf("Thoi gian: %02d:%02d:%02d\n", 
+           local_time->tm_hour, 
+           local_time->tm_min, 
+           local_time->tm_sec);
+}
+
 int main(){
 	while (1) {
 	    char command[100];
@@ -202,6 +229,10 @@ int main(){
 			} else if (strcmp(cmd[0], "resume") == 0) {
 				int cnt = chooseProcessFromList();
 				resumeProcess(cnt);
+			} else if (strcmp(cmd[0], "help") == 0) {
+				help();
+			} else if (strcmp(cmd[0], "time") == 0) {
+				cur_time();
 			}
 		}
 		printf("\n");
