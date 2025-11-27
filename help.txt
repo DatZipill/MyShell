@@ -1,3 +1,5 @@
+		--Chao mung den voi MyShell--
+	Duoi day la mot so lenh quan trong cua MyShell:
 help			: Cac lenh cua MyShell
 fopen <ten_tien_trinh>  : Mo tien trinh o che do foreground
 bopen <ten_tien_trinh>  : Mo tien trinh o che do background

@@ -6,12 +6,26 @@
 
 typedef struct List {
 	PROCESS_INFORMATION pi;
-	char name[10];
+	char name[100];
 	int status;
 	struct List* next;
 } List;
 
 List* head = NULL;
+
+HANDLE fProcess = NULL;
+
+BOOL WINAPI CtrlHandler(DWORD ctrlType) {
+	if (ctrlType == CTRL_C_EVENT) {
+		if (fProcess != NULL) {
+			printf("Dang tat tien trinh...\n");
+			TerminateProcess(fProcess, 1);
+			fProcess = NULL;
+		}
+		return TRUE;
+	}
+	return FALSE;
+}
 
 void addProcessToList(PROCESS_INFORMATION pi, char* name) {
 	List* tmp = (List*)malloc(sizeof(List));
@@ -30,6 +44,14 @@ void addProcessToList(PROCESS_INFORMATION pi, char* name) {
 	}
 }
 
+void cleanupNode(List* node) {
+	if (node) {
+		CloseHandle(node->pi.hProcess);
+		CloseHandle(node->pi.hThread);
+		free(node);
+	}
+}
+
 void removeProcess(int num) {
 	List* cur = head;
 	List* pre_cur = NULL;
@@ -45,14 +67,12 @@ void removeProcess(int num) {
 	}
 	printf("Dang xoa tien trinh thu %d...\n", num);
 	TerminateProcess(cur->pi.hProcess, 0);
-	CloseHandle(cur->pi.hProcess);
-	CloseHandle(cur->pi.hThread);
 	if (pre_cur == NULL) {
 		head = cur->next;
 	} else {
 		pre_cur->next = cur->next;
 	}
-	free(cur);
+	cleanupNode(cur);
 	printf("Da xoa thanh cong\n");
 }
 
@@ -106,7 +126,7 @@ void list() {
 				pre_cur->next = cur->next;
 			}
 			cur = cur->next;
-			free(tmp);
+			cleanupNode(tmp);
 			continue;
 		} else {	
 			char status[10];
@@ -133,33 +153,38 @@ int chooseProcessFromList() {
 }
 
 void createForeProcess(char* cmd) {
-	strcat(cmd, ".exe");
+	char fullCmd[100];
+	sprintf(fullCmd, "%s.exe", cmd);
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
     ZeroMemory(&si, sizeof(si));
     si.cb = sizeof(si);
     ZeroMemory(&pi, sizeof(pi));
-    BOOL check = CreateProcess(NULL, cmd, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+    BOOL check = CreateProcess(NULL, fullCmd, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
     if (check == TRUE) {
-    	printf("Tien trinh da duoc tao thanh cong \nTat tien trinh de tiep tuc su dung shell\n");
+    	printf("Tien trinh da duoc tao thanh cong \nAn Ctrl + C de tat tien trinh\n");
+    	fProcess = pi.hProcess;
+	    WaitForSingleObject(pi.hProcess, INFINITE);
+	    CloseHandle(pi.hProcess);
+	    CloseHandle(pi.hThread);
+	    printf("Da tat tien trinh\n");
 	} else {
 		printf("Tien trinh khong ton tai\n");
 	}
-    WaitForSingleObject(pi.hProcess, INFINITE);
-    CloseHandle(pi.hProcess);
-    CloseHandle(pi.hThread);
 }
 
 PROCESS_INFORMATION createBackProcess(char* cmd) {
-	char name[10];
+	char name[100];
 	strcpy(name, cmd);
+	char fullCmd[100];
+	sprintf(fullCmd, "%s.exe", cmd);
 	strcat(cmd, ".exe");
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
     ZeroMemory(&si, sizeof(si));
     si.cb = sizeof(si);
     ZeroMemory(&pi, sizeof(pi));
-    BOOL check = CreateProcess(NULL, cmd, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+    BOOL check = CreateProcess(NULL, fullCmd, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
     if (check == TRUE) {
     	printf("Tao tien trinh chay song song thanh cong\n");
     	addProcessToList(pi, name);
@@ -173,6 +198,7 @@ void help() {
    FILE *file = fopen("help.txt", "r"); 
    if (file == NULL) {
        printf("Loi khong thay file help\n");
+       return;
    }
    char buffer[100]; 
    while (fgets(buffer, sizeof(buffer), file)) {
@@ -196,6 +222,10 @@ void cur_time() {
 }
 
 int main(){
+	if (SetConsoleCtrlHandler(CtrlHandler, TRUE) == FALSE) {
+        printf("Loi: Khong the dang ky Ctrl Handler\n");
+        return 1;
+    }
 	while (1) {
 	    char command[100];
 	    printf("MyShell>");
@@ -233,8 +263,12 @@ int main(){
 				help();
 			} else if (strcmp(cmd[0], "time") == 0) {
 				cur_time();
+			} else {
+				printf("Lenh khong ton tai\n");
 			}
 		}
+		for (int i = 0; i < cnt; i++) free(cmd[i]);
+		free(cmd);
 		printf("\n");
 	}	
 }
