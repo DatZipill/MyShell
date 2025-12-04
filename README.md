@@ -48,6 +48,16 @@ Sử dụng lệnh "time". Shell sẽ in ra thời gian thực.
 time
 ```
 
+### 8. Path:
+In ra các path đã được thêm vào shell
+```bash
+path
+```
+Thêm path vào danh sách các path của shell. 
+```bash
+addpath
+```
+
 ## Tính năng:
 -- Nhận tín hiệu ngắt từ bàn phím để hủy bỏ foreground process đang thực hiện (CTRL + C)
 

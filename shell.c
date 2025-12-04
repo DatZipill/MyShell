@@ -13,6 +13,9 @@ typedef struct List {
 
 List* head = NULL;
 
+char **allPath = NULL;
+int sumPath = 0;
+
 HANDLE fProcess = NULL;
 
 BOOL WINAPI CtrlHandler(DWORD ctrlType) {
@@ -25,6 +28,26 @@ BOOL WINAPI CtrlHandler(DWORD ctrlType) {
 		return TRUE;
 	}
 	return FALSE;
+}
+
+int fileExists(char *path) {
+	DWORD dwAttri = GetFileAttributes(path);
+	return (dwAttri != INVALID_FILE_ATTRIBUTES && !(dwAttri & FILE_ATTRIBUTE_DIRECTORY));
+}
+
+char* findAbsolutePath(char* cmd) {
+	static char fullPath[256];
+	sprintf(fullPath, "%s.exe", cmd);
+	if (fileExists(fullPath)) {
+		return fullPath;
+	}
+	for (int i = 0; i < sumPath; i++) {
+		sprintf(fullPath, "%s\\%s.exe", allPath[i], cmd);
+		if (fileExists(fullPath)) {
+			return fullPath;
+		}
+	}
+	return NULL;
 }
 
 void addProcessToList(PROCESS_INFORMATION pi, char* name) {
@@ -153,8 +176,13 @@ int chooseProcessFromList() {
 }
 
 void createForeProcess(char* cmd) {
-	char fullCmd[100];
-	sprintf(fullCmd, "%s.exe", cmd);
+	char fullCmd[256];
+	char* foundPath = findAbsolutePath(cmd);
+	if (foundPath != NULL) {
+		strcpy(fullCmd, foundPath);
+	} else {
+		sprintf(fullCmd, "%s.exe", cmd);
+	}
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
     ZeroMemory(&si, sizeof(si));
@@ -221,7 +249,61 @@ void cur_time() {
            local_time->tm_sec);
 }
 
+void directory(char *path){
+	sprintf(path, "%s\\*", path);
+    WIN32_FIND_DATA fd;
+    HANDLE FFF = FindFirstFile(path,&fd);
+    printf("Time         --          Name\n");
+    do{
+    	SYSTEMTIME systemTime;
+	    if (FileTimeToSystemTime(&fd.ftCreationTime, &systemTime)) {
+	        printf("%d/%d/%d %d:%d ", systemTime.wYear, systemTime.wMonth, systemTime.wDay, systemTime.wHour, systemTime.wMinute);
+	    } else {
+	        printf("Khong chuyen duoc filetime thanh systemtime");
+	    }
+        printf("%s\n" ,fd.cFileName);
+    }while(FindNextFile(FFF,&fd) );
+    FindClose(FFF);
+}
+
+int loadPath(char** allPath) {
+	FILE *file = fopen("path.txt", "r");
+	if (file == NULL) {
+		printf("Khong tim thay file chua path\n");
+		return 0;
+	}
+	int cnt = 0;
+	char buffer[256];
+	while(fgets(buffer, sizeof(buffer), file)) {
+		buffer[strcspn(buffer, "\n")] = 0;
+		if (strlen(buffer) == 0) continue;
+		allPath[cnt] = strdup(buffer);
+		cnt++;
+	}
+	fclose(file);
+	return cnt;
+}
+
+int addPath() {
+	FILE *file = fopen("path.txt", "a");
+	if (file == NULL) {
+		printf("Khong tim thay file chua path\n");
+		return sumPath;
+	}
+	char buffer[256];
+	printf("Nhap path ban muon them vao day: ");
+	fgets(buffer, sizeof(buffer), stdin);
+	fprintf(file, buffer);
+	buffer[strcspn(buffer, "\n")] = 0;
+	allPath[sumPath] = strdup(buffer);
+	sumPath++;
+	fclose(file);
+	return sumPath;
+}
+
 int main(){
+	allPath = (char **)malloc(100 * sizeof(char *));
+	sumPath = loadPath(allPath);
 	if (SetConsoleCtrlHandler(CtrlHandler, TRUE) == FALSE) {
         printf("Loi: Khong the dang ky Ctrl Handler\n");
         return 1;
@@ -244,7 +326,9 @@ int main(){
 				createBackProcess(cmd[1]);
 			} else if (strcmp(cmd[0], "fopen") == 0) {
 				createForeProcess(cmd[1]);
-			} 
+			} else if (strcmp(cmd[0], "dir") == 0) {
+				directory(cmd[1]);
+			}
 		} else if (cnt == 1) {
 			if (strcmp(cmd[0], "list") == 0) {
 				list();
@@ -263,6 +347,12 @@ int main(){
 				help();
 			} else if (strcmp(cmd[0], "time") == 0) {
 				cur_time();
+			} else if (strcmp(cmd[0], "path") == 0) {			
+				for (int i = 0; i < sumPath; i++) {
+					printf("%s\n", allPath[i]);
+				}
+			} else if (strcmp(cmd[0], "addpath") == 0) {
+				sumPath = addPath();
 			} else {
 				printf("Lenh khong ton tai\n");
 			}

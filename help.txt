@@ -8,3 +8,5 @@ stop			: Tam dung mot tien trinh dang hoat dong
 resume			: Tiep tuc mot tien trinh dang tam dung
 list			: In ra danh sach cac tien trinh
 time			: In ra thoi gian thuc 
+path			: In ra cac path da them vao
+addpath			: Them path 
