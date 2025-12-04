@@ -12,10 +12,8 @@ typedef struct List {
 } List;
 
 List* head = NULL;
-
 char **allPath = NULL;
 int sumPath = 0;
-
 HANDLE fProcess = NULL;
 
 BOOL WINAPI CtrlHandler(DWORD ctrlType) {
@@ -73,6 +71,16 @@ void cleanupNode(List* node) {
 		CloseHandle(node->pi.hThread);
 		free(node);
 	}
+}
+
+void killAllProcesses() {
+	List* cur = head;
+    while (cur != NULL) {
+        TerminateProcess(cur->pi.hProcess, 0);
+        List* temp = cur;
+        cur = cur->next;
+        cleanupNode(temp);
+    }
 }
 
 void removeProcess(int num) {
@@ -204,9 +212,13 @@ void createForeProcess(char* cmd) {
 PROCESS_INFORMATION createBackProcess(char* cmd) {
 	char name[100];
 	strcpy(name, cmd);
-	char fullCmd[100];
-	sprintf(fullCmd, "%s.exe", cmd);
-	strcat(cmd, ".exe");
+	char fullCmd[256];
+	char* foundPath = findAbsolutePath(cmd);
+	if (foundPath != NULL) {
+		strcpy(fullCmd, foundPath);
+	} else {
+		sprintf(fullCmd, "%s.exe", cmd);
+	}
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
     ZeroMemory(&si, sizeof(si));
@@ -333,6 +345,11 @@ int main(){
 			if (strcmp(cmd[0], "list") == 0) {
 				list();
 			} else if (strcmp(cmd[0], "exit") == 0) {
+				killAllProcesses();
+                for (int i = 0; i < cnt; i++) free(cmd[i]);
+                free(cmd);
+                for (int i = 0; i < sumPath; i++) free(allPath[i]);
+                free(allPath);
 				break;
 			} else if (strcmp(cmd[0], "remove") == 0) {
 				int cnt = chooseProcessFromList();
