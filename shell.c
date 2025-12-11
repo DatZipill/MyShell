@@ -265,11 +265,11 @@ void directory(char *path){
 	sprintf(path, "%s\\*", path);
     WIN32_FIND_DATA fd;
     HANDLE FFF = FindFirstFile(path,&fd);
-    printf("Time         --          Name\n");
+    printf("      Time       -- Name\n", "Time");
     do{
     	SYSTEMTIME systemTime;
 	    if (FileTimeToSystemTime(&fd.ftCreationTime, &systemTime)) {
-	        printf("%d/%d/%d %d:%d ", systemTime.wYear, systemTime.wMonth, systemTime.wDay, systemTime.wHour, systemTime.wMinute);
+	        printf("%04d/%02d/%02d %02d:%02d -- ", systemTime.wYear, systemTime.wMonth, systemTime.wDay, systemTime.wHour, systemTime.wMinute);
 	    } else {
 	        printf("Khong chuyen duoc filetime thanh systemtime");
 	    }
@@ -302,7 +302,7 @@ int addPath() {
 		printf("Khong tim thay file chua path\n");
 		return sumPath;
 	}
-	char buffer[256];
+	char buffer[MAX_PATH];
 	printf("Nhap path ban muon them vao day: ");
 	fgets(buffer, sizeof(buffer), stdin);
 	fprintf(file, buffer);
@@ -321,8 +321,10 @@ int main(){
         return 1;
     }
 	while (1) {
+		char currentDir[MAX_PATH];
+		GetCurrentDirectory(MAX_PATH, currentDir);
+		printf("MyShell ~%s>", currentDir);
 	    char command[100];
-	    printf("MyShell>");
 	    fgets(command, sizeof(command), stdin);
 	    command[strlen(command)-1] = '\0';
 	    char* token = strtok(command," ");
@@ -338,8 +340,10 @@ int main(){
 				createBackProcess(cmd[1]);
 			} else if (strcmp(cmd[0], "fopen") == 0) {
 				createForeProcess(cmd[1]);
-			} else if (strcmp(cmd[0], "dir") == 0) {
-				directory(cmd[1]);
+			} else if (strcmp(cmd[0], "cd") == 0) {
+				if (!SetCurrentDirectory(cmd[1])) {
+					printf("Khong tim thay thu muc");	
+				}
 			}
 		} else if (cnt == 1) {
 			if (strcmp(cmd[0], "list") == 0) {
@@ -370,6 +374,8 @@ int main(){
 				}
 			} else if (strcmp(cmd[0], "addpath") == 0) {
 				sumPath = addPath();
+			} else if (strcmp(cmd[0], "dir") == 0) {
+				directory(currentDir);
 			} else {
 				printf("Lenh khong ton tai\n");
 			}

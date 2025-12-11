@@ -10,3 +10,6 @@ list			: In ra danh sach cac tien trinh
 time			: In ra thoi gian thuc 
 path			: In ra cac path da them vao
 addpath			: Them path 
+dir			: Hien thi cac file trong thuc muc hien tai
+cd <ten_thu_muc>	: Di chuyen den thu muc chi dinh
+exit			: Tat va thoat MyShell
