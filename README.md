@@ -1,4 +1,4 @@
-# Hướng dẫn sử dụng MyShell (Updated 11/12/2025)
+# Hướng dẫn sử dụng MyShell (Updated 18/12/2025)
 ## Một số lệnh:
 ### 1.Mở tiến trình ở chế độ foreground:
 Sử dụng lệnh "fopen". Khi mở ở chế độ này, shell sẽ tạm dừng đến khi tiến trình kết thúc.
@@ -67,7 +67,12 @@ Di chuyển đến thư mục chỉ định
 cd <ten_thu_muc>
 ```
 
-### 10. Tắt và thoát MyShell
+### 10. Mở file bat
+```bash
+bat
+```
+
+### 11. Tắt và thoát MyShell
 ```bash
 exit
 ```

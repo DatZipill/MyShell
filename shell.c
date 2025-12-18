@@ -234,6 +234,37 @@ PROCESS_INFORMATION createBackProcess(char* cmd) {
     return pi;
 }
 
+void createBatProcess(char *cmd) {
+	char name[100];
+	strcpy(name, cmd);
+	char fullCmd[256];
+	char* foundPath = findAbsolutePath(cmd);
+	if (foundPath != NULL) {
+		strcpy(fullCmd, foundPath);
+	} else {
+		sprintf(fullCmd, "%s.bat", cmd);
+	}
+	char finalCmd[300];
+	sprintf(finalCmd, "cmd.exe /c \"%s\"", fullCmd);
+	STARTUPINFO si;
+    PROCESS_INFORMATION pi;
+    ZeroMemory(&si, sizeof(si));
+    si.cb = sizeof(si);
+    ZeroMemory(&pi, sizeof(pi));
+    BOOL check = CreateProcess(NULL, fullCmd, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+    if (check == TRUE) {
+    	printf("Dang chay file bat\n");
+    	fProcess = pi.hProcess;
+    	WaitForSingleObject(pi.hProcess, INFINITE);
+    	fProcess = NULL;
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+        printf("File batch da ket thuc.\n");
+	} else {
+		printf("Khong the chay file bat\n");
+	}
+}
+
 void help() {
    FILE *file = fopen("help.txt", "r"); 
    if (file == NULL) {
@@ -344,6 +375,8 @@ int main(){
 				if (!SetCurrentDirectory(cmd[1])) {
 					printf("Khong tim thay thu muc");	
 				}
+			} else if (strcmp(cmd[0], "bat") == 0) {
+				createBatProcess(cmd[1]);
 			}
 		} else if (cnt == 1) {
 			if (strcmp(cmd[0], "list") == 0) {
