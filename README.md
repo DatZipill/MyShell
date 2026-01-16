@@ -72,11 +72,6 @@ Di chuyển đến thư mục chỉ định
 cd <ten_thu_muc>
 ```
 
-### 10. Mở file bat
-```bash
-bat
-```
-
 ### 11. Tắt và thoát MyShell
 ```bash
 exit

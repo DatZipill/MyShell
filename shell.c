@@ -185,25 +185,19 @@ int chooseProcessFromList() {
 }
 
 void createForeProcess(char* cmd) {
-	char exeName[MAX_PATH];
-	if (strstr(cmd, ".exe") == NULL) {
-        sprintf(exeName, "%s.exe", cmd);
-    } else {
-        strcpy(exeName, cmd);
-    }
     char fullCmd[MAX_PATH];
-    char* foundPath = findAbsolutePath(exeName);
+    char* foundPath = findAbsolutePath(cmd);
 	if (foundPath != NULL) {
 		strcpy(fullCmd, foundPath);
 	} else {
-		sprintf(fullCmd, exeName);
+		sprintf(fullCmd, cmd);
 	}
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
     ZeroMemory(&si, sizeof(si));
     si.cb = sizeof(si);
     ZeroMemory(&pi, sizeof(pi));
-    BOOL check = CreateProcess(NULL, fullCmd, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+    BOOL check = CreateProcess(NULL, fullCmd, NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
     if (check == TRUE) {
     	printf("Tien trinh da duoc tao thanh cong \nAn Ctrl + C de tat tien trinh\n");
     	fProcess = pi.hProcess;
@@ -217,70 +211,26 @@ void createForeProcess(char* cmd) {
 }
 
 PROCESS_INFORMATION createBackProcess(char* cmd) {
-	char name[100];
-	strcpy(name, cmd);
-	char exeName[MAX_PATH];
-	if (strstr(cmd, ".exe") == NULL) {
-        sprintf(exeName, "%s.exe", cmd);
-    } else {
-        strcpy(exeName, cmd);
-    }
     char fullCmd[MAX_PATH];
-    char* foundPath = findAbsolutePath(exeName);
+    char* foundPath = findAbsolutePath(cmd);
 	if (foundPath != NULL) {
 		strcpy(fullCmd, foundPath);
 	} else {
-		sprintf(fullCmd, exeName);
+		sprintf(fullCmd, cmd);
 	}
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
     ZeroMemory(&si, sizeof(si));
     si.cb = sizeof(si);
     ZeroMemory(&pi, sizeof(pi));
-    BOOL check = CreateProcess(NULL, fullCmd, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+    BOOL check = CreateProcess(NULL, fullCmd, NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi);
     if (check == TRUE) {
     	printf("Tao tien trinh chay song song thanh cong\n");
-    	addProcessToList(pi, name);
+    	addProcessToList(pi, cmd);
 	} else {
 		printf("Loi khong tao duoc tien trinh\n");
 	}
     return pi;
-}
-
-void createBatProcess(char *cmd) {
-	char batName[MAX_PATH];
-	if (strstr(cmd, ".bat") == NULL) {
-		sprintf(batName, "%s.bat", cmd);
-	} else {
-		strcpy(batName, cmd);
-	}
-	char fullCmd[MAX_PATH];
-	char* foundPath = findAbsolutePath(batName);
-	if (foundPath != NULL) {
-		strcpy(fullCmd, foundPath);
-	} else {
-		sprintf(fullCmd, "%s.bat", cmd);
-	}
-	
-	char finalCmd[MAX_PATH+50];
-	sprintf(finalCmd, "cmd.exe /c \"%s\"", fullCmd);
-	STARTUPINFO si;
-    PROCESS_INFORMATION pi;
-    ZeroMemory(&si, sizeof(si));
-    si.cb = sizeof(si);
-    ZeroMemory(&pi, sizeof(pi));
-    BOOL check = CreateProcess(NULL, fullCmd, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
-    if (check == TRUE) {
-    	printf("Dang chay file bat\n");
-    	fProcess = pi.hProcess;
-    	WaitForSingleObject(pi.hProcess, INFINITE);
-    	fProcess = NULL;
-        CloseHandle(pi.hProcess);
-        CloseHandle(pi.hThread);
-        printf("File batch da ket thuc.\n");
-	} else {
-		printf("Khong the chay file bat\n");
-	}
 }
 
 void help() {
@@ -453,8 +403,8 @@ int main(){
 				if (!SetCurrentDirectory(cmd[1])) {
 					printf("Khong tim thay thu muc");	
 				}
-			} else if (strcmp(cmd[0], "bat") == 0) {
-				createBatProcess(cmd[1]);
+			} else {
+				printf("Lenh khong ton tai\n");
 			}
 		} else if (cnt == 1) {
 			if (strcmp(cmd[0], "list") == 0) {
@@ -492,6 +442,8 @@ int main(){
 			} else {
 				printf("Lenh khong ton tai\n");
 			}
+		} else {
+			printf("Nhap lenh loi\n");
 		}
 		for (int i = 0; i < cnt; i++) free(cmd[i]);
 		free(cmd);

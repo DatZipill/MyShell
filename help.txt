@@ -3,7 +3,6 @@
 help			: Cac lenh cua MyShell
 fopen <ten_tien_trinh>  : Mo tien trinh o che do foreground
 bopen <ten_tien_trinh>  : Mo tien trinh o che do background
-bat <ten_file_bat> 	: Mo file bat
 remove			: Huy mot tien trinh
 stop			: Tam dung mot tien trinh dang hoat dong
 resume			: Tiep tuc mot tien trinh dang tam dung
