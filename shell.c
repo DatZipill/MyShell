@@ -33,14 +33,15 @@ int fileExists(char *path) {
 	return (dwAttri != INVALID_FILE_ATTRIBUTES && !(dwAttri & FILE_ATTRIBUTE_DIRECTORY));
 }
 
-char* findAbsolutePath(char* cmd) {
-	static char fullPath[256];
-	sprintf(fullPath, "%s.exe", cmd);
+char* findAbsolutePath(char* fileName) {
+	static char fullPath[MAX_PATH]; 
+	
+	strcpy(fullPath, fileName);
 	if (fileExists(fullPath)) {
 		return fullPath;
 	}
 	for (int i = 0; i < sumPath; i++) {
-		sprintf(fullPath, "%s\\%s.exe", allPath[i], cmd);
+		sprintf(fullPath, "%s\\%s", allPath[i], fileName);
 		if (fileExists(fullPath)) {
 			return fullPath;
 		}
@@ -184,12 +185,18 @@ int chooseProcessFromList() {
 }
 
 void createForeProcess(char* cmd) {
-	char fullCmd[256];
-	char* foundPath = findAbsolutePath(cmd);
+	char exeName[MAX_PATH];
+	if (strstr(cmd, ".exe") == NULL) {
+        sprintf(exeName, "%s.exe", cmd);
+    } else {
+        strcpy(exeName, cmd);
+    }
+    char fullCmd[MAX_PATH];
+    char* foundPath = findAbsolutePath(exeName);
 	if (foundPath != NULL) {
 		strcpy(fullCmd, foundPath);
 	} else {
-		sprintf(fullCmd, "%s.exe", cmd);
+		sprintf(fullCmd, exeName);
 	}
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
@@ -212,12 +219,18 @@ void createForeProcess(char* cmd) {
 PROCESS_INFORMATION createBackProcess(char* cmd) {
 	char name[100];
 	strcpy(name, cmd);
-	char fullCmd[256];
-	char* foundPath = findAbsolutePath(cmd);
+	char exeName[MAX_PATH];
+	if (strstr(cmd, ".exe") == NULL) {
+        sprintf(exeName, "%s.exe", cmd);
+    } else {
+        strcpy(exeName, cmd);
+    }
+    char fullCmd[MAX_PATH];
+    char* foundPath = findAbsolutePath(exeName);
 	if (foundPath != NULL) {
 		strcpy(fullCmd, foundPath);
 	} else {
-		sprintf(fullCmd, "%s.exe", cmd);
+		sprintf(fullCmd, exeName);
 	}
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
@@ -235,16 +248,21 @@ PROCESS_INFORMATION createBackProcess(char* cmd) {
 }
 
 void createBatProcess(char *cmd) {
-	char name[100];
-	strcpy(name, cmd);
-	char fullCmd[256];
-	char* foundPath = findAbsolutePath(cmd);
+	char batName[MAX_PATH];
+	if (strstr(cmd, ".bat") == NULL) {
+		sprintf(batName, "%s.bat", cmd);
+	} else {
+		strcpy(batName, cmd);
+	}
+	char fullCmd[MAX_PATH];
+	char* foundPath = findAbsolutePath(batName);
 	if (foundPath != NULL) {
 		strcpy(fullCmd, foundPath);
 	} else {
 		sprintf(fullCmd, "%s.bat", cmd);
 	}
-	char finalCmd[300];
+	
+	char finalCmd[MAX_PATH+50];
 	sprintf(finalCmd, "cmd.exe /c \"%s\"", fullCmd);
 	STARTUPINFO si;
     PROCESS_INFORMATION pi;
@@ -344,6 +362,66 @@ int addPath() {
 	return sumPath;
 }
 
+void rewritePathFile() {
+    FILE *file = fopen("path.txt", "w"); 
+    if (file == NULL) {
+        printf("Loi: Khong the ghi file path.txt\n");
+        return;
+    }
+    
+    for (int i = 0; i < sumPath; i++) {
+        fprintf(file, "%s\n", allPath[i]);
+    }
+    
+    fclose(file);
+}
+
+int removePath() {
+    if (sumPath == 0) {
+        printf("Danh sach Path dang trong.\n");
+        return 0;
+    }
+
+    printf("--- DANH SACH DUONG DAN ---\n");
+    for (int i = 0; i < sumPath; i++) {
+        printf("%d. %s\n", i + 1, allPath[i]); 
+    }
+    printf("---------------------------\n");
+
+    int choice;
+    printf("Nhap so thu tu muon xoa (Nhap 0 de huy): ");
+    if (scanf("%d", &choice) == 0) {
+        choice = 0; 
+    }
+    
+    int c; while ((c = getchar()) != '\n' && c != EOF);
+
+    if (choice == 0) {
+        printf("Da huy thao tac.\n");
+        return sumPath;
+    }
+
+    if (choice < 1 || choice > sumPath) {
+        printf("Loi: So thu tu khong hop le!\n");
+        return sumPath;
+    }
+
+    int index = choice - 1; 
+    
+    printf("Dang xoa: %s\n", allPath[index]);
+    free(allPath[index]); 
+
+    for (int i = index; i < sumPath - 1; i++) {
+        allPath[i] = allPath[i+1];
+    }
+    
+    sumPath--;
+    rewritePathFile(); 
+
+    printf("Da cap nhat path.txt thanh cong.\n");
+    return sumPath;
+}
+
 int main(){
 	allPath = (char **)malloc(100 * sizeof(char *));
 	sumPath = loadPath(allPath);
@@ -407,6 +485,8 @@ int main(){
 				}
 			} else if (strcmp(cmd[0], "addpath") == 0) {
 				sumPath = addPath();
+			} else if (strcmp(cmd[0], "rmpath") == 0) {
+				sumPath = removePath();
 			} else if (strcmp(cmd[0], "dir") == 0) {
 				directory(currentDir);
 			} else {

@@ -57,6 +57,11 @@ Thêm path vào danh sách các path của shell.
 ```bash
 addpath
 ```
+Xóa path hiện có
+```bash
+rmpath
+```
+
 ### 9. Làm việc với thư mục hiện tại
 In ra các file có trong thư mục hiện tại
 ```bash
