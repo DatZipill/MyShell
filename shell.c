@@ -28,6 +28,12 @@ BOOL WINAPI CtrlHandler(DWORD ctrlType) {
 	return FALSE;
 }
 
+int dirExists(char *path) {
+    DWORD dwAttrib = GetFileAttributes(path);
+
+    return (dwAttrib != INVALID_FILE_ATTRIBUTES && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
+}
+
 int fileExists(char *path) {
 	DWORD dwAttri = GetFileAttributes(path);
 	return (dwAttri != INVALID_FILE_ATTRIBUTES && !(dwAttri & FILE_ATTRIBUTE_DIRECTORY));
@@ -296,16 +302,23 @@ int loadPath(char** allPath) {
 }
 
 int addPath() {
+	char buffer[MAX_PATH];
+	printf("Nhap path ban muon them vao day: ");
+	fgets(buffer, sizeof(buffer), stdin);
+	buffer[strcspn(buffer, "\n")] = 0;
+	if (strlen(buffer) == 0) return sumPath;
+	if (!dirExists(buffer)) {
+        printf("Loi: Duong dan '%s' khong ton tai!\n", buffer);
+        return sumPath; 
+    }
+	
 	FILE *file = fopen("path.txt", "a");
 	if (file == NULL) {
 		printf("Khong tim thay file chua path\n");
 		return sumPath;
 	}
-	char buffer[MAX_PATH];
-	printf("Nhap path ban muon them vao day: ");
-	fgets(buffer, sizeof(buffer), stdin);
-	fprintf(file, buffer);
-	buffer[strcspn(buffer, "\n")] = 0;
+	
+	fprintf(file,"%s\n", buffer);
 	allPath[sumPath] = strdup(buffer);
 	sumPath++;
 	fclose(file);
@@ -375,6 +388,7 @@ int removePath() {
 int main(){
 	allPath = (char **)malloc(100 * sizeof(char *));
 	sumPath = loadPath(allPath);
+	SetConsoleTitle("MyShell");
 	if (SetConsoleCtrlHandler(CtrlHandler, TRUE) == FALSE) {
         printf("Loi: Khong the dang ky Ctrl Handler\n");
         return 1;
